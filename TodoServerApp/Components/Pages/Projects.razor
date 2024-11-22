@@ -1,0 +1,66 @@
+﻿@page "/projects"
+@rendermode InteractiveServer
+@inject IDataService data
+@attribute [Authorize]
+@inject NavigationManager navigate
+
+<PageTitle>Проекты</PageTitle>
+
+<h1>Мои проекты</h1>
+
+<div class="container">
+    @if (projects == null)
+    {
+        <tr>
+            <td colspan="5">Loading ...</td>
+        </tr>
+    }
+    else
+    {
+        <div class="btn-group m-2">
+            <button class="btn btn-primary" @onclick="AddProjects">Новый проект</button>
+        </div>
+        <div class="card-group">
+            @foreach (var project in projects)
+            {
+                <div class="card">
+                    <div class="card-header">
+                        @project.Title
+                    </div>
+                    <div class="card-body">
+                        <p>@project.Description</p>
+                        <p>@project.CreatedDate</p>
+                    </div>
+                    <div class="card-footer">
+                        <a class="btn btn-primary" href="projects/@project.Id">Изменить</a>
+                        <button class="btn btn-primary" @onclick="async () => await DeleteProjects(project.Id)">Удалить</button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+
+
+@code 
+{
+    IEnumerable<ProjectItem>? projects;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        projects = await data.GetAllProjectsAsync();
+    }
+
+    void AddProjects()
+    {
+        navigate.NavigateTo("projects/add");
+    }
+
+    async Task DeleteProjects(int id)
+    {
+        await data.DeleteProjectsAsync(id);
+        projects = await data.GetAllProjectsAsync();
+    }
+}

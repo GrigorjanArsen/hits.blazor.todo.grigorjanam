@@ -1,0 +1,64 @@
+﻿@page "/projects/add"
+@page "/projects/{Id:int}"
+@inject IDataService data
+@inject NavigationManager navigate
+
+@if (ProjectItem != null)
+{
+    <EditForm Model="ProjectItem" FormName="ProjectForm" OnValidSubmit="ValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+        <h2>Новый проект</h2>
+        <InputNumber @bind-Value="ProjectItem.Id" hidden />
+        <div class="form-group d-flex justify-content-between m-2">
+            <label class="col-form-label col-3">Название</label>
+            <InputText @bind-Value="ProjectItem.Title" class="form-control" />
+            <ValidationMessage For="() => ProjectItem.Title" />
+        </div>
+        <div class="form-group d-flex justify-content-between m-2">
+            <label class="col-form-label col-3">Описание</label>
+            <InputText @bind-Value="ProjectItem.Description" class="form-control" />
+            <ValidationMessage For="() => ProjectItem.Description" />
+        </div>
+        <div class="form-group d-flex justify-content-between m-2">
+            <label class="col-form-label col-3">Дата создания</label>
+            <InputDate @bind-Value="ProjectItem.FinishDate" class="form-control" />
+            <ValidationMessage For="() => ProjectItem.FinishDate" />
+        </div>
+        <div class="btn-group">
+            <button class="btn btn-primary m-2" type="submit">Сохранить</button>
+            <a class="btn btn-danger m-2" href="/projects">Отмена</a>
+        </div>
+    </EditForm>
+}
+
+@code {
+    [Parameter]
+    public int Id { get; set; }
+
+    [SupplyParameterFromForm]
+    ProjectItem? ProjectItem { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        if (ProjectItem == null)
+        {
+            ProjectItem = new();
+            if (Id != 0)
+            {
+                var user = await data.GetProjectAsync(Id);
+                ProjectItem.Id = user.Id;
+                ProjectItem.Title = user.Title;
+                ProjectItem.Description = user.Description;
+                ProjectItem.RegisteredDate = user.RegisteredDate;
+            }
+        }
+    }
+
+    async Task ValidSubmit()
+    {
+        await data.SaveProjectAsync(ProjectItem!);
+        navigate.NavigateTo("/projects");
+    }
+}
